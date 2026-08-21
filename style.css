@@ -1,0 +1,54 @@
+:root {
+  color-scheme: light;
+  font-family: "SN Pro", Arial, sans-serif;
+  background: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: #ffffff;
+}
+
+body {
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.clock-stage {
+  display: grid;
+  width: 100%;
+  height: 100svh;
+  min-height: 320px;
+  place-items: center;
+  background: #ffffff;
+}
+
+#clock-canvas {
+  width: min(94vw, 94svh);
+  height: min(94vw, 94svh);
+}
+
+#clock-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
