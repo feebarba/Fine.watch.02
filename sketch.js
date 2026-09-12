@@ -54,6 +54,7 @@ let clockReadout;
 let canvasSize = 0;
 let secondsBackgroundLayer;
 let centerMarkerOffset = { x: 0, y: 0 };
+let localPointer;
 let externalPointer;
 let ringParallaxOffset = {
   hours: { x: 0, y: 0 },
@@ -73,6 +74,7 @@ function setup() {
   frameRate(60);
 
   resizeClock();
+  setupLocalPointerTracking(canvas.elt);
   setupParentPointerBridge();
   setupColorDevice();
   loadSNPro();
@@ -175,6 +177,44 @@ function applyPageBackground(color) {
   document.documentElement.style.setProperty("--page-background", color);
 }
 
+function setupLocalPointerTracking(canvasElement) {
+  const updatePointer = (clientX, clientY) => {
+    const canvasRect = canvasElement.getBoundingClientRect();
+    if (canvasRect.width <= 0 || canvasRect.height <= 0) return;
+
+    externalPointer = undefined;
+    localPointer = {
+      x: ((clientX - canvasRect.left) / canvasRect.width) * width,
+      y: ((clientY - canvasRect.top) / canvasRect.height) * height,
+    };
+  };
+
+  const handlePointer = (event) => {
+    updatePointer(event.clientX, event.clientY);
+  };
+
+  const handleTouch = (event) => {
+    const touch = event.touches[0] || event.changedTouches[0];
+    if (touch) updatePointer(touch.clientX, touch.clientY);
+  };
+
+  canvasElement.addEventListener("pointerdown", handlePointer, {
+    passive: true,
+  });
+  canvasElement.addEventListener("pointermove", handlePointer, {
+    passive: true,
+  });
+  canvasElement.addEventListener("pointerenter", handlePointer, {
+    passive: true,
+  });
+  canvasElement.addEventListener("touchstart", handleTouch, {
+    passive: true,
+  });
+  canvasElement.addEventListener("touchmove", handleTouch, {
+    passive: true,
+  });
+}
+
 function setupParentPointerBridge() {
   if (window.parent === window) return;
 
@@ -216,7 +256,7 @@ function setupParentPointerBridge() {
 }
 
 function getInteractionPointer() {
-  return externalPointer || { x: mouseX, y: mouseY };
+  return externalPointer || localPointer || { x: mouseX, y: mouseY };
 }
 
 function getClockTime(now) {
