@@ -17,6 +17,89 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <aside
+      class="color-device color-device--hidden"
+      aria-labelledby="color-device-title"
+      aria-hidden="true"
+    >
+      <span id="color-device-title" class="color-device__title">Cores</span>
+
+      <label class="color-control">
+        <span>Background</span>
+        <input
+          id="background-color"
+          type="color"
+          value="#ffffff"
+          data-ring-color="background"
+          aria-label="Cor do background da página"
+        />
+      </label>
+
+      <label class="color-control">
+        <span>Horas</span>
+        <input
+          id="hours-color"
+          type="color"
+          value="#f4ffee"
+          data-ring-color="hoursBackground"
+          aria-label="Cor do anel das horas"
+        />
+      </label>
+
+      <label class="color-control">
+        <span>Minutos</span>
+        <input
+          id="minutes-color"
+          type="color"
+          value="#e7fddb"
+          data-ring-color="minutesBackground"
+          aria-label="Cor do anel dos minutos"
+        />
+      </label>
+
+      <label class="color-control">
+        <span>Segundos</span>
+        <input
+          id="seconds-color"
+          type="color"
+          value="#f5f5f5"
+          data-ring-color="secondsBackground"
+          aria-label="Cor do anel dos segundos"
+        />
+      </label>
+
+      <label class="color-control">
+        <span>Números</span>
+        <input
+          id="numbers-color"
+          type="color"
+          value="#000000"
+          data-ring-color="numbers"
+          aria-label="Cor dos números"
+        />
+      </label>
+
+      <label class="color-control">
+        <span>Centro</span>
+        <input
+          id="center-color"
+          type="color"
+          value="#ff9cde"
+          data-ring-color="centerMarker"
+          aria-label="Cor do círculo central"
+        />
+      </label>
+
+      <button
+        id="color-reset"
+        class="color-device__reset"
+        type="button"
+        aria-label="Restaurar as cores originais"
+      >
+        Reset
+      </button>
+    </aside>
+
     <main class="clock-stage">
       <div
         id="clock-canvas"

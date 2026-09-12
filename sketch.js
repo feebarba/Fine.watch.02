@@ -1,11 +1,16 @@
-const COLORS = {
-  background: 255,
-  ink: 0,
-  marker: "#000000",
+const ORIGINAL_RING_COLORS = Object.freeze({
+  background: "#FFFFFF",
   hoursBackground: "#F4FFEE",
   minutesBackground: "#E7FDDB",
   secondsBackground: "#F5F5F5",
+  numbers: "#000000",
   centerMarker: "#FF9CDE",
+});
+
+const COLORS = {
+  ink: 0,
+  marker: "#000000",
+  ...ORIGINAL_RING_COLORS,
 };
 
 const FONT_FAMILY = '"SN Pro", Arial, sans-serif';
@@ -67,6 +72,7 @@ function setup() {
   frameRate(60);
 
   resizeClock();
+  setupColorDevice();
   loadSNPro();
 }
 
@@ -109,6 +115,62 @@ function draw() {
   drawSecondsRing(ringCenters.seconds, time, ringRadii.seconds);
 
   updateReadout(time);
+}
+
+function setupColorDevice() {
+  const colorDevice = document.querySelector(".color-device");
+  const inputs = document.querySelectorAll("[data-ring-color]");
+  const resetButton = document.getElementById("color-reset");
+
+  const toggleColorDevice = () => {
+    if (!colorDevice) return;
+
+    const isHidden = colorDevice.classList.toggle("color-device--hidden");
+    colorDevice.setAttribute("aria-hidden", String(isHidden));
+  };
+
+  window.addEventListener("keydown", (event) => {
+    if (event.code !== "Space" || event.repeat) return;
+
+    event.preventDefault();
+    toggleColorDevice();
+  });
+
+  for (const input of inputs) {
+    const colorKey = input.dataset.ringColor;
+    if (!(colorKey in COLORS)) continue;
+
+    input.value = COLORS[colorKey];
+    if (colorKey === "background") {
+      applyPageBackground(COLORS.background);
+    }
+    input.addEventListener("input", () => {
+      COLORS[colorKey] = input.value;
+      if (colorKey === "background") {
+        applyPageBackground(COLORS.background);
+      }
+    });
+  }
+
+  resetButton?.addEventListener("click", () => {
+    for (const [colorKey, originalColor] of Object.entries(
+      ORIGINAL_RING_COLORS,
+    )) {
+      COLORS[colorKey] = originalColor;
+      if (colorKey === "background") {
+        applyPageBackground(COLORS.background);
+      }
+
+      const input = document.querySelector(
+        `[data-ring-color="${colorKey}"]`,
+      );
+      if (input) input.value = originalColor;
+    }
+  });
+}
+
+function applyPageBackground(color) {
+  document.documentElement.style.setProperty("--page-background", color);
 }
 
 function getClockTime(now) {
@@ -406,8 +468,7 @@ function drawHoursRing(center, time, radius) {
         focusPosition,
         RING_STYLE.hours.values.length,
       ),
-    colorForIndex: (index) =>
-      index === currentIndex ? COLORS.marker : "#000000",
+    colorForIndex: () => COLORS.numbers,
     currentIndex,
     previousIndex,
     currentWeight: lerp(WEIGHTS.light, WEIGHTS.active, transition),
@@ -464,8 +525,7 @@ function drawMinutesRing(center, time, radius) {
         focusPosition,
         RING_STYLE.minutes.values.length,
       ),
-    colorForIndex: (index) =>
-      index === currentIndex ? COLORS.marker : "#000000",
+    colorForIndex: () => COLORS.numbers,
     currentIndex,
     previousIndex,
     currentWeight: lerp(WEIGHTS.light, WEIGHTS.active, transition),
@@ -522,8 +582,7 @@ function drawSecondsRing(center, time, radius) {
         focusPosition,
         RING_STYLE.seconds.values.length,
       ),
-    colorForIndex: (index) =>
-      index === currentIndex ? COLORS.marker : "#000000",
+    colorForIndex: () => COLORS.numbers,
     currentIndex,
     previousIndex,
     currentWeight: lerp(WEIGHTS.light, WEIGHTS.active, transition),
@@ -566,7 +625,7 @@ function drawRing({
     opacityForIndex ? opacityForIndex(index) : 1,
   );
   const colors = values.map((_, index) =>
-    colorForIndex ? colorForIndex(index) : "#000000",
+    colorForIndex ? colorForIndex(index) : COLORS.numbers,
   );
   const ringLayout = getAdaptiveRingAngles(
     values,
@@ -752,7 +811,7 @@ function drawVariableText(
   fontSize,
   weight,
   opacity = 1,
-  fillColor = "#000000",
+  fillColor = COLORS.numbers,
 ) {
   const context = drawingContext;
   context.save();
