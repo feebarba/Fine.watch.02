@@ -54,6 +54,7 @@ let clockReadout;
 let canvasSize = 0;
 let secondsBackgroundLayer;
 let centerMarkerOffset = { x: 0, y: 0 };
+let externalPointer;
 let ringParallaxOffset = {
   hours: { x: 0, y: 0 },
   minutes: { x: 0, y: 0 },
@@ -72,6 +73,7 @@ function setup() {
   frameRate(60);
 
   resizeClock();
+  setupParentPointerBridge();
   setupColorDevice();
   loadSNPro();
 }
@@ -171,6 +173,50 @@ function setupColorDevice() {
 
 function applyPageBackground(color) {
   document.documentElement.style.setProperty("--page-background", color);
+}
+
+function setupParentPointerBridge() {
+  if (window.parent === window) return;
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+
+    const data = event.data;
+    if (!data || data.type !== "weight-clock:pointermove") return;
+
+    if (data.active === false) {
+      externalPointer = undefined;
+      return;
+    }
+
+    const x = Number(data.x);
+    const y = Number(data.y);
+    const viewportWidth = Number(data.viewportWidth);
+    const viewportHeight = Number(data.viewportHeight);
+    const canvas = clockHost?.querySelector("canvas");
+
+    if (
+      !canvas ||
+      ![x, y, viewportWidth, viewportHeight].every(Number.isFinite) ||
+      viewportWidth <= 0 ||
+      viewportHeight <= 0
+    ) {
+      return;
+    }
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const viewportX = (x / viewportWidth) * window.innerWidth;
+    const viewportY = (y / viewportHeight) * window.innerHeight;
+
+    externalPointer = {
+      x: ((viewportX - canvasRect.left) / canvasRect.width) * width,
+      y: ((viewportY - canvasRect.top) / canvasRect.height) * height,
+    };
+  });
+}
+
+function getInteractionPointer() {
+  return externalPointer || { x: mouseX, y: mouseY };
 }
 
 function getClockTime(now) {
@@ -298,8 +344,9 @@ function getSecondsBackgroundLayer() {
 }
 
 function drawCenterMarker(center, ringRadii) {
-  const deltaX = mouseX - center.x;
-  const deltaY = mouseY - center.y;
+  const pointer = getInteractionPointer();
+  const deltaX = pointer.x - center.x;
+  const deltaY = pointer.y - center.y;
   const mouseDistance = Math.hypot(deltaX, deltaY);
   const interactionRadius = getSecondsBackgroundOuterRadius(ringRadii);
   const pursuit = smoothStep(
@@ -334,8 +381,9 @@ function drawCenterMarker(center, ringRadii) {
 }
 
 function getRingParallaxCenters(center, ringRadii) {
-  const deltaX = mouseX - center.x;
-  const deltaY = mouseY - center.y;
+  const pointer = getInteractionPointer();
+  const deltaX = pointer.x - center.x;
+  const deltaY = pointer.y - center.y;
   const mouseDistance = Math.hypot(deltaX, deltaY);
   const interactionRadius = getSecondsBackgroundOuterRadius(ringRadii);
   const parallaxAmount = smoothStep(
@@ -364,7 +412,11 @@ function getRingParallaxCenters(center, ringRadii) {
 
 function getBackgroundBlend(center, ringRadii) {
   const outerRadius = getSecondsBackgroundOuterRadius(ringRadii);
-  const mouseDistance = Math.hypot(mouseX - center.x, mouseY - center.y);
+  const pointer = getInteractionPointer();
+  const mouseDistance = Math.hypot(
+    pointer.x - center.x,
+    pointer.y - center.y,
+  );
   const proximity = 1 - constrain(mouseDistance / outerRadius, 0, 1);
 
   return 1 - smoothStep(proximity);
