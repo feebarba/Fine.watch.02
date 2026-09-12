@@ -2,7 +2,7 @@ const ORIGINAL_RING_COLORS = Object.freeze({
   background: "#FFFFFF",
   hoursBackground: "#F4FFEE",
   minutesBackground: "#E7FDDB",
-  secondsBackground: "#F5F5F5",
+  secondsBackground: "#FFFFFF",
   numbers: "#000000",
   centerMarker: "#FF9CDE",
 });
